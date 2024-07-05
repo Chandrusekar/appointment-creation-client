@@ -1,0 +1,11 @@
+<nav *ngIf="isLoggedIn">
+  <ul>
+      <li>
+          <a (click)="logout()" class="logout-align">Logout</a>
+      </li>
+  </ul>
+</nav>
+
+<router-outlet (activate)="checkLoggedInUser()" >
+  <!-- our content pages goes here -->
+</router-outlet>

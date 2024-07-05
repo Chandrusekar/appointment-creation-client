@@ -1,0 +1,52 @@
+import { Component, OnInit } from '@angular/core';
+import { SignupService } from 'src/app/services/signup.service';
+import {FormBuilder,FormGroup, Validators} from '@angular/forms';
+import { Status } from 'src/app/models/status';
+
+@Component({
+  selector: 'app-signup',
+  templateUrl: './signup.component.html',
+  styleUrls: ['./signup.component.scss']
+})
+export class SignupComponent implements OnInit {
+
+  constructor(private signupService:SignupService,private fb:FormBuilder) { }
+  
+  frm!:FormGroup;
+  status!:Status;
+
+  get f(){
+    return this.frm.controls;
+  }
+
+  onPost(){
+     this.status = {statusCode:0,message:"wait.."};
+     this.signupService.signup(this.frm.value).subscribe({
+      next: (res)=>{
+        console.log(res);
+        this.status=res;
+        this.frm.reset();
+      },
+      error: (err)=>{
+       this.status.statusCode=0;
+       this.status.message= "some error on server side";
+      console.log(err);
+      },
+      complete:()=>{
+       
+      }
+     })
+  }
+
+  ngOnInit(): void {
+    // must be atleast 6 character long,must contain 1 uppercase, 1 lowercase, 1 digit and 1 special character
+    this.frm= this.fb.group({
+       'username':['',Validators.required],
+      'password':['',Validators.required],
+      'email':['',Validators.required],
+       'DOB':['',Validators.required],
+       'Role':['',Validators.required]
+    })
+  }
+
+}

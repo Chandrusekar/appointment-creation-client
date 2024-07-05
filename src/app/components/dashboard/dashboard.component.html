@@ -1,0 +1,216 @@
+<div class="container">
+    <header class="jumbotron">
+      <!-- Filter users and date -->
+      <div class="row text-center mb-3">
+        <div class="offset-1 col-8">
+          <div id="custom-search-input">
+            <div class="input-group col-md-12">
+                <input type="text" class="form-control input-lg" placeholder="Search" />
+                <span class="input-group-btn">
+                    <button class="btn btn-info btn-lg" type="button">
+                        <i class="fa fa-search"></i>
+                    </button>
+                </span>
+            </div>
+          </div>
+        </div>
+        <!-- Create new event -->
+        <div class="col-2 mt-1">
+          <button class="btn btn-primary float-end" (click)="addNewAppointment()">
+            Add Event
+          </button>
+        </div>
+        <div class="offset-1"></div>
+      </div>
+      <!-- Select [ Year || Month || Date] and [ Next && Previous] -->
+      <div class="row text-center">
+        <div class="col-md-4">
+          <div class="btn-group">
+            <div
+              class="btn btn-primary"
+              mwlCalendarPreviousView
+              [view]="view"
+              [(viewDate)]="viewDate"
+              (viewDateChange)="closeOpenMonthViewDay()"
+            >
+              Previous
+            </div>
+            <div
+              class="btn btn-outline-secondary"
+              mwlCalendarToday
+              [(viewDate)]="viewDate"
+            >
+              Today
+            </div>
+            <div
+              class="btn btn-primary"
+              mwlCalendarNextView
+              [view]="view"
+              [(viewDate)]="viewDate"
+              (viewDateChange)="closeOpenMonthViewDay()"
+            >
+              Next
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <h3>{{ viewDate | calendarDate:(view + 'ViewTitle'):'en' }}</h3>
+        </div>
+        <div class="col-md-4">
+          <div class="btn-group">
+            <div
+              class="btn btn-primary"
+              (click)="setView(CalendarView.Month)"
+              [class.active]="view === CalendarView.Month"
+            >
+              Month
+            </div>
+            <div
+              class="btn btn-primary"
+              (click)="setView(CalendarView.Week)"
+              [class.active]="view === CalendarView.Week"
+            >
+              Week
+            </div>
+            <div
+              class="btn btn-primary"
+              (click)="setView(CalendarView.Day)"
+              [class.active]="view === CalendarView.Day"
+            >
+              Day
+            </div>
+          </div>
+        </div>
+      </div>
+      <br />
+      Show calendar view types Ex: [ Month || Week || Day ]
+      <div [ngSwitch]="view">
+        <mwl-calendar-month-view
+          *ngSwitchCase="CalendarView.Month"
+          [viewDate]="viewDate"
+          [events]="events"
+          [refresh]="refresh"
+          [activeDayIsOpen]="activeDayIsOpen"
+          (dayClicked)="dayClicked($event.day)"
+          (eventClicked)="handleEvent('Clicked', $event.event)"
+          (eventTimesChanged)="eventTimesChanged($event)"
+        >
+        </mwl-calendar-month-view>
+        <mwl-calendar-week-view
+          *ngSwitchCase="CalendarView.Week"
+          [viewDate]="viewDate"
+          [events]="events"
+          [refresh]="refresh"
+          (eventClicked)="handleEvent('Clicked', $event.event)"
+          (eventTimesChanged)="eventTimesChanged($event)"
+        >
+        </mwl-calendar-week-view>
+        <mwl-calendar-day-view
+          *ngSwitchCase="CalendarView.Day"
+          [viewDate]="viewDate"
+          [events]="events"
+          [refresh]="refresh"
+          (eventClicked)="handleEvent('Clicked', $event.event)"
+          (eventTimesChanged)="eventTimesChanged($event)"
+        >
+        </mwl-calendar-day-view>
+      </div>
+
+      <!-- Create and update the events modal window -->
+      <ng-template #createUpdateModalContent let-close="close">
+        <div class="modal-header">
+          <h5 class="modal-title">{{modalTitleTxt}} Appointment</h5>
+          <button type="button" class="close" (click)="close()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="m-3">
+            <form [formGroup]="addAppointmentForm" (ngSubmit)="onSubmit()">
+                <div class="row">
+                  <div class="col-6 mb-3">
+                      <label 
+                      class="form-label">Title</label>
+                      <input type="text" formControlName="title" class="form-control" placeholder="Title" [ngClass]="{ 'is-invalid': submitted && f?.['title']?.errors }" />
+                      <div *ngIf="submitted && f?.['title']?.errors" class="invalid-feedback">
+                          <div *ngIf="f?.['title']?.errors?.['required']">Title is required</div>
+                      </div>
+                  </div>
+                  <div class="col-6 mb-3">
+                      <label class="form-label">User Uniquee ID</label>
+                      <input type="text" formControlName="id" class="form-control" placeholder="User Uniquee ID" [ngClass]="{ 'is-invalid': submitted && f?.['id']?.errors }" />
+                      <div *ngIf="submitted && f?.['id']?.errors" class="invalid-feedback">
+                          <div *ngIf="f?.['id']?.errors?.['required']">User Uniquee is required</div>
+                      </div>
+                  </div>
+                </div>
+                <div class="row">
+                    <div class="col mb-3">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" formControlName="start" class="form-control" [ngClass]="{ 'is-invalid': submitted && f?.['start']?.errors }" />
+                        <div *ngIf="submitted && f?.['start']?.errors" class="invalid-feedback">
+                            <div *ngIf="f?.['start']?.errors?.['required']">Start date is required</div>
+                            <div *ngIf="f?.['start']?.errors?.['pattern']">Start date must be a valid date in the format YYYY-MM-DD</div>
+                        </div>
+                    </div>
+                    <div class="col mb-3">
+                      <label class="form-label">End Date</label>
+                      <input type="date" formControlName="end" class="form-control" [ngClass]="{ 'is-invalid': submitted && f?.['end']?.errors }" />
+                      <div *ngIf="submitted && f?.['end']?.errors" class="invalid-feedback">
+                          <div *ngIf="f?.['end']?.errors?.['required']">End date is required</div>
+                          <div *ngIf="f?.['end']?.errors?.['pattern']">End date must be a valid date in the format YYYY-MM-DD</div>
+                      </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col mb-3">
+                      <label class="form-label">User ID</label>
+                      <input type="text" formControlName="userId" class="form-control" placeholder="User ID" [ngClass]="{ 'is-invalid': submitted && f?.['userId']?.errors }" />
+                      <div *ngIf="submitted && f?.['userId']?.errors" class="invalid-feedback">
+                          <div *ngIf="f?.['userId']?.errors?.['required']">User id is required</div>
+                      </div>
+                  </div>
+                  <div class="col mb-3">
+                      <label class="form-label">Status</label>
+                      <select formControlName="status" class="form-control" placeholder="Status" [ngClass]="{ 'is-invalid': submitted && f?.['status']?.errors }">
+                          <option value=""></option>
+                          <option value="Scheduled">Scheduled</option>
+                          <option value="Completed">Completed</option>
+                          <option value="Cancelled">Cancelled</option>
+                          <option value="Deleted">Deleted</option>
+                      </select>
+                      <div *ngIf="submitted && f?.['status']?.errors" class="invalid-feedback">
+                          <div *ngIf="f?.['status']?.errors?.['required']">Status is required</div>
+                      </div>
+                  </div>
+                </div>
+                <div class="text-center">
+                  <button class="btn btn-secondary m-3" type="reset" (click)="close()">Cancel</button>
+                  <button class="btn btn-primary me-2">{{modalButtonTxt}}</button>
+                </div>
+            </form>
+          </div>
+        </div>
+      </ng-template>
+      
+      <!-- Delete event modal window -->
+      <ng-template #deletModalContent let-close="close">
+        <div class="modal-header">
+          <h5 class="modal-title">Delete Event</h5>
+          <button type="button" class="close" (click)="close()">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure!. You want delete this event?</p>
+        </div>
+        <div class="modal-footer">
+          <div class="text-end">
+            <button class="btn btn-secondary m-3" type="reset" (click)="close()">No</button>
+            <button class="btn btn-primary me-2" (click)="deleteAppointment()">Yes</button>
+          </div>
+        </div>
+      </ng-template>
+    </header>
+  </div>
+  
